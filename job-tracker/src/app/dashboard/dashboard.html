@@ -1,0 +1,174 @@
+<div class="dashboard-container">
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">💼</span>
+      <h1>Job Tracker</h1>
+    </div>
+    <div class="navbar-user">
+      <button class="btn btn-outline" (click)="onLogout()">
+        <span class="icon">🚪</span> Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <!-- Quick Statistics Summary Bar -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Applications</span>
+        <span class="stat-value">{{ stats().total }}</span>
+      </div>
+      <div class="stat-card border-applied">
+        <span class="stat-label">Applied</span>
+        <span class="stat-value text-applied">{{ stats().applied }}</span>
+      </div>
+      <div class="stat-card border-interviewing">
+        <span class="stat-label">Interviewing</span>
+        <span class="stat-value text-interviewing">{{ stats().interviewing }}</span>
+      </div>
+      <div class="stat-card border-offered">
+        <span class="stat-label">Offered</span>
+        <span class="stat-value text-offered">{{ stats().offered }}</span>
+      </div>
+      <div class="stat-card border-rejected">
+        <span class="stat-label">Rejected</span>
+        <span class="stat-value text-rejected">{{ stats().rejected }}</span>
+      </div>
+      <div class="stat-card border-bookmarked">
+        <span class="stat-label">Bookmarked</span>
+        <span class="stat-value text-bookmarked">{{ stats().bookmarked }}</span>
+      </div>
+    </section>
+
+    <!-- Toolbar: Search, Filters, and Add Action -->
+    <section class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search company or role..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+          <button *ngIf="searchQuery()" class="clear-btn" (click)="searchQuery.set('')">&times;</button>
+        </div>
+
+        <div class="filter-pills">
+          <button
+            *ngFor="let filter of statusFilters"
+            class="pill-btn"
+            [class.active]="selectedStatusFilter() === filter"
+            (click)="selectedStatusFilter.set(filter)"
+          >
+            {{ filter }}
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <span class="icon">+</span> Add Application
+        </button>
+      </div>
+    </section>
+
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage()" class="alert-banner">
+      <span>⚠️ {{ errorMessage() }}</span>
+      <button class="close-alert" (click)="errorMessage.set('')">&times;</button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading applications...</p>
+    </div>
+
+    <!-- Empty Applications State -->
+    <div *ngIf="!loading() && filteredApplications().length === 0" class="empty-state">
+      <div class="empty-icon">📁</div>
+      <h3>No job applications found</h3>
+      <p *ngIf="searchQuery() || selectedStatusFilter() !== 'All'">
+        No results matching your filters. Try resetting the search or filter query.
+      </p>
+      <p *ngIf="!searchQuery() && selectedStatusFilter() === 'All'">
+        You haven't tracked any job applications yet. Click "Add Application" to get started!
+      </p>
+      <button *ngIf="!searchQuery() && selectedStatusFilter() === 'All'" class="btn btn-primary" (click)="openCreateModal()">
+        + Add Your First Application
+      </button>
+    </div>
+
+    <!-- Applications Card Grid -->
+    <section *ngIf="!loading() && filteredApplications().length > 0" class="applications-grid">
+      <div *ngFor="let app of filteredApplications()" class="app-card">
+        <div class="app-card-header">
+          <div class="app-title-group">
+            <h3 class="company-name">{{ app.company_name }}</h3>
+            <span class="role-name">{{ app.role }}</span>
+          </div>
+          <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
+            {{ app.status }}
+          </span>
+        </div>
+
+        <div class="app-card-body">
+          <div class="meta-row">
+            <span class="meta-item">
+              <span class="meta-label">Applied:</span> {{ app.applied_date }}
+            </span>
+            <span *ngIf="app.interview_date" class="meta-item text-highlight">
+              <span class="meta-label">Interview:</span> {{ app.interview_date }}
+            </span>
+          </div>
+
+          <div *ngIf="app.job_url" class="meta-row">
+            <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
+              🔗 View Job Posting
+            </a>
+          </div>
+
+          <p *ngIf="app.notes" class="app-notes">
+            {{ app.notes }}
+          </p>
+        </div>
+
+        <div class="app-card-footer">
+          <button class="btn-action edit-btn" (click)="openEditModal(app)">
+            ✏️ Edit
+          </button>
+          <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Create/Edit Form Modal Component -->
+  <app-application-form
+    *ngIf="showFormModal()"
+    [initialData]="editingApplication()"
+    [isSubmitting]="isSubmitting()"
+    (formSubmit)="handleFormSubmit($event)"
+    (formCancel)="closeModal()"
+  ></app-application-form>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="deleteConfirmAppId()" class="confirm-modal-backdrop" (click)="cancelDelete()">
+    <div class="confirm-modal-card" (click)="$event.stopPropagation()">
+      <div class="confirm-header">
+        <h3>Delete Application</h3>
+      </div>
+      <p class="confirm-body">
+        Are you sure you want to delete this job application? This action cannot be undone.
+      </p>
+      <div class="confirm-footer">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmDelete()">Delete Application</button>
+      </div>
+    </div>
+  </div>
+</div>

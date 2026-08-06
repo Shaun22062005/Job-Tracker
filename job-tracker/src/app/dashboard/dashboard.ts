@@ -1,0 +1,177 @@
+import { Component, OnInit, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Auth } from '../auth';
+import { ApplicationsService } from '../applications';
+import { JobApplication, JobApplicationCreate } from '../job-application';
+import { ApplicationForm } from '../application-form/application-form';
+
+@Component({
+  selector: 'app-dashboard',
+  imports: [CommonModule, FormsModule, ApplicationForm],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss',
+})
+export class Dashboard implements OnInit {
+  applications = signal<JobApplication[]>([]);
+  loading = signal<boolean>(true);
+  errorMessage = signal<string>('');
+
+  searchQuery = signal<string>('');
+  selectedStatusFilter = signal<string>('All');
+
+  showFormModal = signal<boolean>(false);
+  editingApplication = signal<JobApplication | null>(null);
+  isSubmitting = signal<boolean>(false);
+
+  deleteConfirmAppId = signal<number | null>(null);
+
+  statusFilters = ['All', 'Applied', 'Interviewing', 'Offered', 'Rejected', 'Bookmarked'];
+
+  stats = computed(() => {
+    const list = this.applications();
+    return {
+      total: list.length,
+      applied: list.filter((a) => a.status === 'Applied').length,
+      interviewing: list.filter((a) => a.status === 'Interviewing').length,
+      offered: list.filter((a) => a.status === 'Offered').length,
+      rejected: list.filter((a) => a.status === 'Rejected').length,
+      bookmarked: list.filter((a) => a.status === 'Bookmarked').length,
+    };
+  });
+
+  filteredApplications = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const filter = this.selectedStatusFilter();
+    return this.applications().filter((app) => {
+      const matchesSearch =
+        !query ||
+        app.company_name.toLowerCase().includes(query) ||
+        app.role.toLowerCase().includes(query) ||
+        (app.notes && app.notes.toLowerCase().includes(query));
+
+      const matchesStatus = filter === 'All' || app.status === filter;
+      return matchesSearch && matchesStatus;
+    });
+  });
+
+  constructor(
+    private applicationsService: ApplicationsService,
+    private authService: Auth,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.fetchApplications();
+  }
+
+  fetchApplications() {
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.applicationsService.getApplications().subscribe({
+      next: (data) => {
+        this.applications.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err?.error?.detail || 'Failed to load applications');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  onLogout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  openCreateModal() {
+    this.editingApplication.set(null);
+    this.showFormModal.set(true);
+  }
+
+  openEditModal(app: JobApplication) {
+    this.editingApplication.set(app);
+    this.showFormModal.set(true);
+  }
+
+  closeModal() {
+    this.showFormModal.set(false);
+    this.editingApplication.set(null);
+  }
+
+  handleFormSubmit(payload: JobApplicationCreate) {
+    this.isSubmitting.set(true);
+    const editing = this.editingApplication();
+
+    if (editing) {
+      this.applicationsService.updateApplication(editing.id, payload).subscribe({
+        next: (updatedApp) => {
+          this.applications.update((apps) =>
+            apps.map((a) => (a.id === updatedApp.id ? updatedApp : a))
+          );
+          this.isSubmitting.set(false);
+          this.closeModal();
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.detail || 'Failed to update application');
+          this.isSubmitting.set(false);
+        },
+      });
+    } else {
+      this.applicationsService.createApplication(payload).subscribe({
+        next: (newApp) => {
+          this.applications.update((apps) => [newApp, ...apps]);
+          this.isSubmitting.set(false);
+          this.closeModal();
+        },
+        error: (err) => {
+          this.errorMessage.set(err?.error?.detail || 'Failed to create application');
+          this.isSubmitting.set(false);
+        },
+      });
+    }
+  }
+
+  promptDelete(id: number) {
+    this.deleteConfirmAppId.set(id);
+  }
+
+  cancelDelete() {
+    this.deleteConfirmAppId.set(null);
+  }
+
+  confirmDelete() {
+    const id = this.deleteConfirmAppId();
+    if (!id) return;
+
+    this.applicationsService.deleteApplication(id).subscribe({
+      next: () => {
+        this.applications.update((apps) => apps.filter((a) => a.id !== id));
+        this.deleteConfirmAppId.set(null);
+      },
+      error: (err) => {
+        this.errorMessage.set(err?.error?.detail || 'Failed to delete application');
+        this.deleteConfirmAppId.set(null);
+      },
+    });
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'Applied':
+        return 'badge-applied';
+      case 'Interviewing':
+        return 'badge-interviewing';
+      case 'Offered':
+        return 'badge-offered';
+      case 'Rejected':
+        return 'badge-rejected';
+      case 'Bookmarked':
+        return 'badge-bookmarked';
+      default:
+        return 'badge-default';
+    }
+  }
+}

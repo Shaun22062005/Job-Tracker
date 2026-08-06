@@ -1,0 +1,112 @@
+<div class="modal-backdrop" (click)="onCancel()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ initialData ? 'Edit Application' : 'Add New Application' }}</h3>
+      <button class="close-btn" (click)="onCancel()">&times;</button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="form-body">
+      <div *ngIf="errorMessage()" class="alert-error">
+        {{ errorMessage() }}
+      </div>
+
+      <div class="form-group">
+        <label for="companyName">Company Name *</label>
+        <input
+          id="companyName"
+          type="text"
+          [ngModel]="companyName()"
+          (ngModelChange)="companyName.set($event)"
+          name="companyName"
+          placeholder="e.g. Google, Acme Inc."
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role / Position *</label>
+        <input
+          id="role"
+          type="text"
+          [ngModel]="role()"
+          (ngModelChange)="role.set($event)"
+          name="role"
+          placeholder="e.g. Senior Frontend Engineer"
+          required
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="status">Application Status *</label>
+          <select
+            id="status"
+            [ngModel]="status()"
+            (ngModelChange)="status.set($event)"
+            name="status"
+          >
+            <option *ngFor="let opt of statusOptions" [value]="opt">{{ opt }}</option>
+          </select>
+        </div>
+
+        <div class="form-group half">
+          <label for="appliedDate">Applied Date *</label>
+          <input
+            id="appliedDate"
+            type="date"
+            [ngModel]="appliedDate()"
+            (ngModelChange)="appliedDate.set($event)"
+            name="appliedDate"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label for="interviewDate">Interview Date (Optional)</label>
+          <input
+            id="interviewDate"
+            type="date"
+            [ngModel]="interviewDate()"
+            (ngModelChange)="interviewDate.set($event)"
+            name="interviewDate"
+          />
+        </div>
+
+        <div class="form-group half">
+          <label for="jobUrl">Job Posting URL (Optional)</label>
+          <input
+            id="jobUrl"
+            type="url"
+            [ngModel]="jobUrl()"
+            (ngModelChange)="jobUrl.set($event)"
+            name="jobUrl"
+            placeholder="https://..."
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notes / Details (Optional)</label>
+        <textarea
+          id="notes"
+          rows="3"
+          [ngModel]="notes()"
+          (ngModelChange)="notes.set($event)"
+          name="notes"
+          placeholder="Referral name, salary range, tech stack requirements..."
+        ></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSubmitting">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : (initialData ? 'Update Application' : 'Save Application') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
