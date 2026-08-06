@@ -1,0 +1,19 @@
+<div
+  #cardContainer
+  class="glowing-card-wrapper"
+  [class.is-starred]="isStarred"
+  [class.light-mode]="mode === 'light'"
+  [class.dark-mode]="mode === 'dark'"
+  (mousemove)="onPointerMove($event)"
+  (mouseleave)="onPointerLeave()"
+>
+  <ng-container *ngIf="isStarred">
+    <div class="glowing-card-mesh-border"></div>
+    <div class="glowing-card-mesh-bg"></div>
+    <div class="glowing-card-glow"></div>
+  </ng-container>
+
+  <div class="glowing-card-content">
+    <ng-content></ng-content>
+  </div>
+</div>

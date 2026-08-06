@@ -6,10 +6,11 @@ import { Auth } from '../auth';
 import { ApplicationsService } from '../applications';
 import { JobApplication, JobApplicationCreate } from '../job-application';
 import { ApplicationForm } from '../application-form/application-form';
+import { GlowingCard } from '../glowing-card/glowing-card';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, FormsModule, ApplicationForm],
+  imports: [CommonModule, FormsModule, ApplicationForm, GlowingCard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -27,12 +28,13 @@ export class Dashboard implements OnInit {
 
   deleteConfirmAppId = signal<number | null>(null);
 
-  statusFilters = ['All', 'Applied', 'Interviewing', 'Offered', 'Rejected', 'Bookmarked'];
+  statusFilters = ['All', 'Starred', 'Applied', 'Interviewing', 'Offered', 'Rejected', 'Bookmarked'];
 
   stats = computed(() => {
     const list = this.applications();
     return {
       total: list.length,
+      starred: list.filter((a) => a.is_starred).length,
       applied: list.filter((a) => a.status === 'Applied').length,
       interviewing: list.filter((a) => a.status === 'Interviewing').length,
       offered: list.filter((a) => a.status === 'Offered').length,
@@ -51,7 +53,13 @@ export class Dashboard implements OnInit {
         app.role.toLowerCase().includes(query) ||
         (app.notes && app.notes.toLowerCase().includes(query));
 
-      const matchesStatus = filter === 'All' || app.status === filter;
+      let matchesStatus = true;
+      if (filter === 'Starred') {
+        matchesStatus = !!app.is_starred;
+      } else if (filter !== 'All') {
+        matchesStatus = app.status === filter;
+      }
+
       return matchesSearch && matchesStatus;
     });
   });
@@ -132,6 +140,30 @@ export class Dashboard implements OnInit {
         },
       });
     }
+  }
+
+  toggleStar(app: JobApplication, event: MouseEvent) {
+    event.stopPropagation();
+    // Optimistic UI update
+    const previousStarred = app.is_starred;
+    this.applications.update((apps) =>
+      apps.map((a) => (a.id === app.id ? { ...a, is_starred: !previousStarred } : a))
+    );
+
+    this.applicationsService.toggleStar(app.id).subscribe({
+      next: (updatedApp) => {
+        this.applications.update((apps) =>
+          apps.map((a) => (a.id === updatedApp.id ? updatedApp : a))
+        );
+      },
+      error: (err) => {
+        // Revert on error
+        this.applications.update((apps) =>
+          apps.map((a) => (a.id === app.id ? { ...a, is_starred: previousStarred } : a))
+        );
+        this.errorMessage.set(err?.error?.detail || 'Failed to update star status');
+      },
+    });
   }
 
   promptDelete(id: number) {

@@ -56,6 +56,7 @@ def create_application(
         notes = application.notes,
         job_url = application.job_url,
         interview_date = application.interview_date,
+        is_starred = application.is_starred or False,
     )
 
     db.add(new_application)
@@ -94,6 +95,29 @@ def update_application(
     db_application.notes = application.notes
     db_application.job_url = application.job_url
     db_application.interview_date = application.interview_date
+    if application.is_starred is not None:
+        db_application.is_starred = application.is_starred
+
+    db.commit()
+    db.refresh(db_application)
+
+    return db_application
+
+@app.patch("/applications/{application_id}/star", response_model=schemas.ApplicationResponse)
+def toggle_star_application(
+    application_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_application = db.query(models.Application).filter(models.Application.id == application_id).first()
+
+    if db_application is None:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    if db_application.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this application")
+
+    db_application.is_starred = not (db_application.is_starred or False)
 
     db.commit()
     db.refresh(db_application)

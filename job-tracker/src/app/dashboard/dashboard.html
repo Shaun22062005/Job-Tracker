@@ -19,6 +19,10 @@
         <span class="stat-label">Total Applications</span>
         <span class="stat-value">{{ stats().total }}</span>
       </div>
+      <div class="stat-card border-starred">
+        <span class="stat-label">Starred</span>
+        <span class="stat-value text-starred">{{ stats().starred }}</span>
+      </div>
       <div class="stat-card border-applied">
         <span class="stat-label">Applied</span>
         <span class="stat-value text-applied">{{ stats().applied }}</span>
@@ -103,47 +107,62 @@
 
     <!-- Applications Card Grid -->
     <section *ngIf="!loading() && filteredApplications().length > 0" class="applications-grid">
-      <div *ngFor="let app of filteredApplications()" class="app-card">
-        <div class="app-card-header">
-          <div class="app-title-group">
-            <h3 class="company-name">{{ app.company_name }}</h3>
-            <span class="role-name">{{ app.role }}</span>
-          </div>
-          <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
-            {{ app.status }}
-          </span>
-        </div>
-
-        <div class="app-card-body">
-          <div class="meta-row">
-            <span class="meta-item">
-              <span class="meta-label">Applied:</span> {{ app.applied_date }}
+      <app-glowing-card
+        *ngFor="let app of filteredApplications()"
+        [isStarred]="app.is_starred || false"
+      >
+        <div class="app-card" [class.is-starred-card]="app.is_starred">
+          <div class="app-card-header">
+            <div class="app-title-group">
+              <div class="company-row">
+                <button
+                  class="star-btn"
+                  [class.starred]="app.is_starred"
+                  (click)="toggleStar(app, $event)"
+                  [title]="app.is_starred ? 'Unstar application' : 'Star application (enables glowing edge effect)'"
+                >
+                  {{ app.is_starred ? '⭐' : '☆' }}
+                </button>
+                <h3 class="company-name">{{ app.company_name }}</h3>
+              </div>
+              <span class="role-name">{{ app.role }}</span>
+            </div>
+            <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
+              {{ app.status }}
             </span>
-            <span *ngIf="app.interview_date" class="meta-item text-highlight">
-              <span class="meta-label">Interview:</span> {{ app.interview_date }}
-            </span>
           </div>
 
-          <div *ngIf="app.job_url" class="meta-row">
-            <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
-              🔗 View Job Posting
-            </a>
+          <div class="app-card-body">
+            <div class="meta-row">
+              <span class="meta-item">
+                <span class="meta-label">Applied:</span> {{ app.applied_date }}
+              </span>
+              <span *ngIf="app.interview_date" class="meta-item text-highlight">
+                <span class="meta-label">Interview:</span> {{ app.interview_date }}
+              </span>
+            </div>
+
+            <div *ngIf="app.job_url" class="meta-row">
+              <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
+                🔗 View Job Posting
+              </a>
+            </div>
+
+            <p *ngIf="app.notes" class="app-notes">
+              {{ app.notes }}
+            </p>
           </div>
 
-          <p *ngIf="app.notes" class="app-notes">
-            {{ app.notes }}
-          </p>
+          <div class="app-card-footer">
+            <button class="btn-action edit-btn" (click)="openEditModal(app)">
+              ✏️ Edit
+            </button>
+            <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
+              🗑️ Delete
+            </button>
+          </div>
         </div>
-
-        <div class="app-card-footer">
-          <button class="btn-action edit-btn" (click)="openEditModal(app)">
-            ✏️ Edit
-          </button>
-          <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
-            🗑️ Delete
-          </button>
-        </div>
-      </div>
+      </app-glowing-card>
     </section>
   </main>
 

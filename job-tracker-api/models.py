@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -24,5 +24,6 @@ class Application(Base):
     notes = Column(String, nullable=True)
     job_url = Column(String, nullable=True)
     interview_date = Column(Date, nullable=True)
+    is_starred = Column(Boolean, default=False)
 
     owner = relationship("User", back_populates="applications")

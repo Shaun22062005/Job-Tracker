@@ -23,6 +23,10 @@ export class ApplicationsService {
     return this.http.put<JobApplication>(`${this.apiUrl}/${id}`, application);
   }
 
+  toggleStar(id: number): Observable<JobApplication> {
+    return this.http.patch<JobApplication>(`${this.apiUrl}/${id}/star`, {});
+  }
+
   deleteApplication(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }

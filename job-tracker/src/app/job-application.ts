@@ -8,6 +8,7 @@ export interface JobApplication {
   notes?: string | null;
   job_url?: string | null;
   interview_date?: string | null;
+  is_starred?: boolean;
 }
 
 export interface JobApplicationCreate {
@@ -18,4 +19,5 @@ export interface JobApplicationCreate {
   notes?: string | null;
   job_url?: string | null;
   interview_date?: string | null;
+  is_starred?: boolean;
 }
