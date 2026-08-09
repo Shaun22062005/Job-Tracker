@@ -1,22 +1,34 @@
 <div class="dashboard-container">
   <!-- Top Navigation Bar -->
   <header class="navbar">
-    <div class="navbar-brand">
-      <span class="brand-icon">💼</span>
-      <h1>Job Tracker</h1>
-    </div>
-    <div class="navbar-user">
-      <button class="btn btn-outline" (click)="onLogout()">
-        <span class="icon">🚪</span> Logout
-      </button>
+    <div class="navbar-container">
+      <div class="navbar-brand">
+        <a routerLink="/" class="brand-title">Job Tracker</a>
+      </div>
+      <div class="navbar-user">
+        <button class="btn btn-outline" (click)="onLogout()">
+          Logout
+        </button>
+      </div>
     </div>
   </header>
 
   <main class="dashboard-content">
+    <!-- Page Title & Primary CTA Bar -->
+    <div class="dashboard-header-bar">
+      <div>
+        <h2 class="page-title">Applications Dashboard</h2>
+        <p class="page-subtitle">Track and manage your active job applications pipeline</p>
+      </div>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        + Add Application
+      </button>
+    </div>
+
     <!-- Quick Statistics Summary Bar -->
     <section class="stats-grid">
       <div class="stat-card">
-        <span class="stat-label">Total Applications</span>
+        <span class="stat-label">Total</span>
         <span class="stat-value">{{ stats().total }}</span>
       </div>
       <div class="stat-card border-starred">
@@ -45,42 +57,33 @@
       </div>
     </section>
 
-    <!-- Toolbar: Search, Filters, and Add Action -->
+    <!-- Toolbar: Search and Status Filters -->
     <section class="toolbar">
-      <div class="toolbar-left">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search company or role..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="searchQuery.set($event)"
-          />
-          <button *ngIf="searchQuery()" class="clear-btn" (click)="searchQuery.set('')">&times;</button>
-        </div>
-
-        <div class="filter-pills">
-          <button
-            *ngFor="let filter of statusFilters"
-            class="pill-btn"
-            [class.active]="selectedStatusFilter() === filter"
-            (click)="selectedStatusFilter.set(filter)"
-          >
-            {{ filter }}
-          </button>
-        </div>
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search company or role..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+        <button *ngIf="searchQuery()" class="clear-btn" (click)="searchQuery.set('')">&times;</button>
       </div>
 
-      <div class="toolbar-right">
-        <button class="btn btn-primary" (click)="openCreateModal()">
-          <span class="icon">+</span> Add Application
+      <div class="filter-pills">
+        <button
+          *ngFor="let filter of statusFilters"
+          class="pill-btn"
+          [class.active]="selectedStatusFilter() === filter"
+          (click)="selectedStatusFilter.set(filter)"
+        >
+          {{ filter }}
         </button>
       </div>
     </section>
 
-    <!-- Error Alert -->
+    <!-- Error Alert Banner -->
     <div *ngIf="errorMessage()" class="alert-banner">
-      <span>⚠️ {{ errorMessage() }}</span>
+      <span>{{ errorMessage() }}</span>
       <button class="close-alert" (click)="errorMessage.set('')">&times;</button>
     </div>
 
@@ -92,16 +95,15 @@
 
     <!-- Empty Applications State -->
     <div *ngIf="!loading() && filteredApplications().length === 0" class="empty-state">
-      <div class="empty-icon">📁</div>
-      <h3>No job applications found</h3>
+      <h3>No applications found</h3>
       <p *ngIf="searchQuery() || selectedStatusFilter() !== 'All'">
-        No results matching your filters. Try resetting the search or filter query.
+        No job applications match your current search query or status filter.
       </p>
       <p *ngIf="!searchQuery() && selectedStatusFilter() === 'All'">
-        You haven't tracked any job applications yet. Click "Add Application" to get started!
+        You haven't added any job applications yet. Click below to add your first one.
       </p>
       <button *ngIf="!searchQuery() && selectedStatusFilter() === 'All'" class="btn btn-primary" (click)="openCreateModal()">
-        + Add Your First Application
+        + Add Application
       </button>
     </div>
 
@@ -111,7 +113,7 @@
         *ngFor="let app of filteredApplications()"
         [isStarred]="app.is_starred || false"
       >
-        <div class="app-card" [class.is-starred-card]="app.is_starred">
+        <div class="app-card">
           <div class="app-card-header">
             <div class="app-title-group">
               <div class="company-row">
@@ -119,9 +121,9 @@
                   class="star-btn"
                   [class.starred]="app.is_starred"
                   (click)="toggleStar(app, $event)"
-                  [title]="app.is_starred ? 'Unstar application' : 'Star application (enables glowing edge effect)'"
+                  [title]="app.is_starred ? 'Unstar application' : 'Star application'"
                 >
-                  {{ app.is_starred ? '⭐' : '☆' }}
+                  {{ app.is_starred ? '★' : '☆' }}
                 </button>
                 <h3 class="company-name">{{ app.company_name }}</h3>
               </div>
@@ -137,14 +139,14 @@
               <span class="meta-item">
                 <span class="meta-label">Applied:</span> {{ app.applied_date }}
               </span>
-              <span *ngIf="app.interview_date" class="meta-item text-highlight">
+              <span *ngIf="app.interview_date" class="meta-item text-interview-date">
                 <span class="meta-label">Interview:</span> {{ app.interview_date }}
               </span>
             </div>
 
             <div *ngIf="app.job_url" class="meta-row">
               <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
-                🔗 View Job Posting
+                View Job Posting &rarr;
               </a>
             </div>
 
@@ -155,10 +157,10 @@
 
           <div class="app-card-footer">
             <button class="btn-action edit-btn" (click)="openEditModal(app)">
-              ✏️ Edit
+              Edit
             </button>
             <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
-              🗑️ Delete
+              Delete
             </button>
           </div>
         </div>

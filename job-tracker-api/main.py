@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db
 from auth_utils import hash_password, verify_password, create_access_token, decode_access_token
@@ -10,6 +11,14 @@ import models
 import schemas
 
 Base.metadata.create_all(bind=engine)
+
+# Auto-migrate SQLite schema for missing columns on existing database
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE applications ADD COLUMN is_starred BOOLEAN DEFAULT 0"))
+        conn.commit()
+    except Exception:
+        pass
 
 app = FastAPI()
 

@@ -1,48 +1,42 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
-      <div class="brand-logo">💼</div>
+      <a routerLink="/" class="brand-link">Job Tracker</a>
       <h2>Create an Account</h2>
       <p>Start tracking your job applications today</p>
     </div>
 
     <div *ngIf="errorMessage()" class="alert-error">
-      <span>⚠️ {{ errorMessage() }}</span>
+      {{ errorMessage() }}
     </div>
 
     <form (ngSubmit)="onSubmit()" class="auth-form">
       <div class="form-group">
-        <label for="reg-email">Email Address</label>
-        <div class="input-wrapper">
-          <span class="input-icon">✉️</span>
-          <input
-            id="reg-email"
-            type="email"
-            placeholder="you@example.com"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-            name="email"
-            required
-            autocomplete="email"
-          />
-        </div>
+        <label for="reg-email">Email address</label>
+        <input
+          id="reg-email"
+          type="email"
+          placeholder="you@example.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+          required
+          autocomplete="email"
+        />
       </div>
 
       <div class="form-group">
         <label for="reg-password">Password</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🔒</span>
-          <input
-            id="reg-password"
-            type="password"
-            placeholder="Choose a password"
-            [ngModel]="password()"
-            (ngModelChange)="password.set($event)"
-            name="password"
-            required
-            autocomplete="new-password"
-          />
-        </div>
+        <input
+          id="reg-password"
+          type="password"
+          placeholder="Choose a password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          required
+          autocomplete="new-password"
+        />
       </div>
 
       <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">

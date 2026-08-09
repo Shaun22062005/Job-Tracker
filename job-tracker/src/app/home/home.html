@@ -1,0 +1,117 @@
+<div class="landing-page">
+  <!-- Navigation Header -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <div class="brand">
+        <span class="brand-title">Job Tracker</span>
+      </div>
+      <nav class="nav-links">
+        <ng-container *ngIf="authService.isLoggedIn(); else guestNav">
+          <a routerLink="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+        </ng-container>
+        <ng-template #guestNav>
+          <a routerLink="/login" class="nav-link">Sign In</a>
+          <a routerLink="/register" class="btn btn-primary">Get Started</a>
+        </ng-template>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section (Split Screen) -->
+  <main class="hero-section">
+    <div class="hero-container">
+      <!-- Left Column: Copy & CTA -->
+      <div class="hero-content">
+        <h1 class="hero-title">Stop losing track of your job search</h1>
+        <p class="hero-subtext">
+          Log applications, get follow-up reminders, and see your pipeline at a glance.
+        </p>
+        <div class="hero-actions">
+          <a
+            [routerLink]="authService.isLoggedIn() ? '/dashboard' : '/register'"
+            class="btn btn-hero"
+          >
+            {{ authService.isLoggedIn() ? 'Go to Dashboard' : 'Start Tracking Applications' }}
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Realistic Dashboard Mockup -->
+      <div class="hero-preview">
+        <div class="mockup-frame">
+          <div class="mockup-header">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="mockup-url">job-tracker.app/dashboard</span>
+          </div>
+
+          <div class="mockup-body">
+            <!-- Stats Bar Mockup -->
+            <div class="mockup-stats">
+              <div class="mockup-stat">
+                <span class="stat-num">12</span>
+                <span class="stat-lbl">Total</span>
+              </div>
+              <div class="mockup-stat border-applied">
+                <span class="stat-num text-applied">5</span>
+                <span class="stat-lbl">Applied</span>
+              </div>
+              <div class="mockup-stat border-interviewing">
+                <span class="stat-num text-interviewing">3</span>
+                <span class="stat-lbl">Interviewing</span>
+              </div>
+              <div class="mockup-stat border-offered">
+                <span class="stat-num text-offered">2</span>
+                <span class="stat-lbl">Offered</span>
+              </div>
+            </div>
+
+            <!-- Cards Mockup -->
+            <div class="mockup-cards">
+              <div class="mockup-card">
+                <div class="mockup-card-header">
+                  <div>
+                    <h4 class="company">Stripe</h4>
+                    <span class="role">Frontend Engineer</span>
+                  </div>
+                  <span class="pill pill-interviewing">Interviewing</span>
+                </div>
+                <div class="mockup-card-meta">
+                  <span>Applied: Oct 12</span>
+                  <span class="interview-date">Interview: Oct 24</span>
+                </div>
+              </div>
+
+              <div class="mockup-card">
+                <div class="mockup-card-header">
+                  <div>
+                    <h4 class="company">Linear</h4>
+                    <span class="role">Product Designer</span>
+                  </div>
+                  <span class="pill pill-offered">Offered</span>
+                </div>
+                <div class="mockup-card-meta">
+                  <span>Applied: Oct 04</span>
+                </div>
+              </div>
+
+              <div class="mockup-card">
+                <div class="mockup-card-header">
+                  <div>
+                    <h4 class="company">Vercel</h4>
+                    <span class="role">Full Stack Engineer</span>
+                  </div>
+                  <span class="pill pill-applied">Applied</span>
+                </div>
+                <div class="mockup-card-meta">
+                  <span>Applied: Oct 18</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

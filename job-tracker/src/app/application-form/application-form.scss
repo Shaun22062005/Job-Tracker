@@ -4,25 +4,23 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
+  background-color: rgba(24, 24, 27, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
 }
 
 .modal-card {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
   width: 90%;
-  max-width: 580px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  color: #f8fafc;
+  max-width: 560px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  color: #18181b;
   overflow: hidden;
-  animation: slideUp 0.25s ease-out;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .modal-header {
@@ -30,29 +28,28 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #e4e4e7;
 
   h3 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #f1f5f9;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #18181b;
   }
 
   .close-btn {
     background: none;
     border: none;
-    color: #94a3b8;
-    font-size: 1.5rem;
+    color: #71717a;
+    font-size: 1.35rem;
     cursor: pointer;
     line-height: 1;
-    padding: 4px;
-    border-radius: 6px;
-    transition: all 0.2s;
+    padding: 2px 6px;
+    border-radius: 4px;
 
     &:hover {
-      color: #f8fafc;
-      background: rgba(255, 255, 255, 0.1);
+      color: #18181b;
+      background-color: #f4f4f5;
     }
   }
 }
@@ -65,42 +62,42 @@
 }
 
 .alert-error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 
   label {
     font-size: 0.85rem;
-    font-weight: 500;
-    color: #cbd5e1;
+    font-weight: 600;
+    color: #18181b;
   }
 
   input, select, textarea {
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 8px;
+    background-color: #ffffff;
+    border: 1px solid #d4d4d8;
+    border-radius: 6px;
     padding: 0.65rem 0.85rem;
-    color: #f8fafc;
+    color: #18181b;
     font-size: 0.95rem;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      border-color: #15803d;
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
     }
 
     &::placeholder {
-      color: #64748b;
+      color: #a1a1aa;
     }
   }
 
@@ -128,50 +125,38 @@
   gap: 0.75rem;
   margin-top: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid #f4f4f5;
 }
 
 .btn {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   border: none;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.65;
     cursor: not-allowed;
   }
 }
 
 .btn-secondary {
-  background: #334155;
-  color: #e2e8f0;
+  background-color: #e4e4e7;
+  color: #18181b;
 
   &:hover:not(:disabled) {
-    background: #475569;
+    background-color: #d4d4d8;
   }
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background-color: #15803d;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #4f46e5, #4338ca);
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    background-color: #166534;
   }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
