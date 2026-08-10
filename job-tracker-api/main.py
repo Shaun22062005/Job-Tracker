@@ -177,8 +177,13 @@ def delete_application(
 
     return {"message": "Application deleted successfully"}
 
+@app.post("/auth/register", response_model=schemas.UserResponse)
 @app.post("/auth/register/", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
     new_user = models.User(
         email = user.email,
         hashed_password = hash_password(user.plain_password),
