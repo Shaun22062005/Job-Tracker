@@ -124,16 +124,16 @@ npx ng serve --port 4200
 
 ---
 
-## 🛡️ Technical Highlights & Portfolio Engineering Decisions
+## 💡 Use & Advantages
 
-1. **Zoneless Angular Reactivity Engine**:
-   In Angular applications configured without Zone.js change detection, standard property assignments inside HTTP callbacks do not trigger view updates. Every piece of asynchronous dynamic state (`applications`, `loading`, `errorMessage`, `searchQuery`, `stats`, `filteredApplications`) relies on **Angular Signals** (`signal()`, `computed()`), providing efficient, predictable, and fine-grained reactive template rendering.
+1. **Streamlined Job Search Management**:
+   Centralizes your entire job application workflow in one organized dashboard — tracking company details, roles, interview dates, application statuses, and notes without relying on messy spreadsheets.
 
-2. **Backend Security & Multi-Tenant Data Isolation**:
-   All CRUD endpoints (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) decode the JWT token via FastAPI's `get_current_user` dependency. Mutation endpoints (`PUT`, `DELETE`, `PATCH`) explicitly verify `db_application.user_id == current_user.id`, preventing horizontal privilege escalation attacks.
+2. **Fine-Grained Reactive Performance**:
+   Leverages **Angular Signals** (`signal()`, `computed()`) for fast, lightweight, and instant client-side filtering, live search, and real-time statistics updates without change detection overhead.
 
-3. **Curated Portfolio Design System**:
-   Designed specifically to project structure, clarity, and trustworthiness for portfolio presentation:
-   - **Background**: Soft off-white (`#FAFAFA`)
-   - **Primary CTA Accent**: Forest Green (`#15803D`)
-   - **Status Badges**: Small rounded `999px` pills with distinct light-background/dark-text pairings (`Applied`, `Interviewing`, `Offered`, `Rejected`, `Bookmarked`)
+3. **Secure Multi-User Data Isolation**:
+   Protects user data using OAuth2 JWT authentication and strict backend ownership enforcement on all endpoints, ensuring each user's job applications are completely private and isolated.
+
+4. **Clean & Focus-Driven Interface**:
+   Features a calm off-white (`#FAFAFA`) and forest green (`#15803D`) design system with distinct status badges, reducing cognitive fatigue and keeping you focused during your job search.
