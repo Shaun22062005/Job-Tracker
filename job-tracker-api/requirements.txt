@@ -6,4 +6,5 @@ pydantic
 passlib[bcrypt]
 bcrypt
 pyjwt
+python-jose[cryptography]
 slowapi
