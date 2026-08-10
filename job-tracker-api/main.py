@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException
+import os
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -10,9 +11,20 @@ from typing import List
 import models
 import schemas
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+# Rate Limiter setup to defend auth endpoints against brute force
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Database table creation
 Base.metadata.create_all(bind=engine)
 
-# Auto-migrate SQLite schema for missing columns on existing database
+# Auto-migrate SQLite schema for missing columns on local database
 with engine.connect() as conn:
     try:
         conn.execute(text("ALTER TABLE applications ADD COLUMN is_starred BOOLEAN DEFAULT 0"))
@@ -20,15 +32,28 @@ with engine.connect() as conn:
     except Exception:
         pass
 
-app = FastAPI()
+# Dynamic CORS origin validation for production frontend deployment
+allowed_origins = [
+    os.getenv("FRONTEND_URL", "http://localhost:4200"),
+    "http://localhost:4200",
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Defensive Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
@@ -166,7 +191,8 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @app.post("/auth/login")
-def user_login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def user_login(request: Request, user: schemas.UserLogin, db: Session = Depends(get_db)):
     current_user = db.query(models.User).filter(models.User.email == user.email).first()
 
     if current_user is None:

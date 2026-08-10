@@ -1,27 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
-  private apiUrl = 'http://localhost:8000';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
   register(email: string, password: string) {
     return this.http.post(`${this.apiUrl}/auth/register/`, {
       email,
-      plain_password: password
+      plain_password: password,
     });
   }
 
   login(email: string, password: string) {
-    return this.http.post<{access_token: string, token_type: string}>(
-      `${this.apiUrl}/auth/login`, {
-        email, 
-        plain_password: password 
-      });
+    return this.http.post<{ access_token: string; token_type: string }>(
+      `${this.apiUrl}/auth/login`,
+      {
+        email,
+        plain_password: password,
+      }
+    );
   }
 
   storeToken(token: string) {
@@ -36,7 +39,7 @@ export class Auth {
     return this.getToken() !== null;
   }
 
-  logout(){
+  logout() {
     localStorage.removeItem('access_token');
   }
 }
