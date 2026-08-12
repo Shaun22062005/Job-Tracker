@@ -34,16 +34,22 @@ with engine.connect() as conn:
 
 # Dynamic CORS origin validation for production frontend deployment
 allowed_origins = [
-    os.getenv("FRONTEND_URL", "https://job-tracker-two-rosy.vercel.app"),
     "https://job-tracker-two-rosy.vercel.app",
     "http://localhost:4200",
 ]
 
+frontend_env = os.getenv("FRONTEND_URL")
+if frontend_env:
+    clean_url = frontend_env.strip().rstrip("/")
+    if clean_url not in allowed_origins:
+        allowed_origins.append(clean_url)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
