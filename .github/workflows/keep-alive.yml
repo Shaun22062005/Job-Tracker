@@ -2,8 +2,8 @@ name: Render Keep-Alive Heartbeat
 
 on:
   schedule:
-    # Run every 10 minutes (gives a 5-minute safety buffer before Render's 15-minute sleep threshold)
-    - cron: '*/10 * * * *'
+    # Run 4 times per hour at explicit off-peak minutes (:07, :22, :37, :52) to prevent global queue drops
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch: # Allows manual triggering from GitHub Actions UI
 
 concurrency:
