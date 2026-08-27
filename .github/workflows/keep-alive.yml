@@ -2,9 +2,13 @@ name: Render Keep-Alive Heartbeat
 
 on:
   schedule:
-    # Run every 14 minutes to prevent Render free-tier web service from sleeping
-    - cron: '*/14 * * * *'
+    # Run every 10 minutes (gives a 5-minute safety buffer before Render's 15-minute sleep threshold)
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Allows manual triggering from GitHub Actions UI
+
+concurrency:
+  group: keep-alive-ping
+  cancel-in-progress: true
 
 jobs:
   ping:
@@ -15,5 +19,8 @@ jobs:
       - name: Send HTTP Heartbeat to Render Backend
         run: |
           echo "Sending keep-alive ping to Render backend..."
-          response=$(curl -s -w "%{http_code}" https://job-tracker-api-72bt.onrender.com/)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://job-tracker-api-72bt.onrender.com/)
           echo "Render HTTP Response Code: $response"
+          if [ "$response" -ne 200 ]; then
+            echo "Warning: Render responded with status $response"
+          fi
