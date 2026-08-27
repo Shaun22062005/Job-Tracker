@@ -9,7 +9,9 @@ from sqlalchemy.pool import StaticPool
 # Ensure job-tracker-api directory is in python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Set test environment variables before importing app modules
+# Set test environment variables BEFORE importing app modules so database.py and main.py use in-memory SQLite
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["TESTING"] = "True"
 os.environ["SECRET_KEY"] = "test-secret-key-for-pytest-suite-12345"
 os.environ["ALGORITHM"] = "HS256"
 os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "60"
