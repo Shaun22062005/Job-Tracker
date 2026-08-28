@@ -30,19 +30,33 @@ export class Login implements AfterViewInit {
       google.accounts.id.initialize({
         client_id: environment.googleClientId,
         callback: (response: any) => this.handleGoogleCredentialResponse(response),
+        auto_select: false,
       });
 
-      const btnElement = document.getElementById('googleBtnLogin');
-      if (btnElement) {
-        google.accounts.id.renderButton(btnElement, {
+      const hiddenContainer = document.getElementById('googleHiddenBtn');
+      if (hiddenContainer) {
+        google.accounts.id.renderButton(hiddenContainer, {
           theme: 'outline',
           size: 'large',
-          width: '100%',
           text: 'signin_with',
         });
       }
     } else {
       setTimeout(() => this.initGoogleAuth(), 500);
+    }
+  }
+
+  triggerGoogleAuth() {
+    const hiddenContainer = document.getElementById('googleHiddenBtn');
+    if (hiddenContainer) {
+      const btn = hiddenContainer.querySelector('div[role="button"]') as HTMLElement;
+      if (btn) {
+        btn.click();
+        return;
+      }
+    }
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      google.accounts.id.prompt();
     }
   }
 

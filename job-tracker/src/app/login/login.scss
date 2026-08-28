@@ -144,12 +144,39 @@
 }
 
 .google-btn-wrapper {
-  display: flex;
-  justify-content: center;
   width: 100%;
 
-  iframe {
-    margin: 0 auto !important;
+  .btn-google-custom {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    background-color: #ffffff;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    padding: 0.7rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #18181b;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      background-color: #f4f4f5;
+      border-color: #a1a1aa;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.15);
+    }
+
+    .google-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
   }
 }
 
