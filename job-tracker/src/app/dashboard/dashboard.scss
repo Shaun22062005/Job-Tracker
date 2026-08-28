@@ -273,6 +273,21 @@
       display: flex;
       align-items: center;
       gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .slot-tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.725rem;
+      font-weight: 700;
+      color: #15803d;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 4px;
+      padding: 0.12rem 0.5rem;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
     }
 
     .star-btn {
