@@ -60,7 +60,7 @@ export class Register implements AfterViewInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.detail || 'Google sign-up failed.');
+        this.errorMessage.set(this.formatAuthError(err, 'Google sign-up failed. Please try again.'));
       },
     });
   }
@@ -81,8 +81,19 @@ export class Register implements AfterViewInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.detail || 'Registration failed.');
+        this.errorMessage.set(this.formatAuthError(err, 'Registration failed. Please try again.'));
       },
     });
+  }
+
+  private formatAuthError(err: any, fallbackMessage: string): string {
+    const detail = err?.error?.detail;
+    if (err?.status === 404 || detail === 'Not Found') {
+      return 'Service temporarily updating. Please try again in a few seconds.';
+    }
+    if (detail === 'Email already registered') {
+      return 'An account with this email already exists. Please sign in instead.';
+    }
+    return detail || fallbackMessage;
   }
 }

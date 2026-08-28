@@ -42,7 +42,6 @@ export class Login implements AfterViewInit {
         });
       }
     } else {
-      // Retry in 500ms if script is still loading
       setTimeout(() => this.initGoogleAuth(), 500);
     }
   }
@@ -61,7 +60,7 @@ export class Login implements AfterViewInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.detail || 'Google sign-in failed.');
+        this.errorMessage.set(this.formatAuthError(err, 'Google sign-in failed. Please try again.'));
       },
     });
   }
@@ -83,8 +82,19 @@ export class Login implements AfterViewInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(err?.error?.detail || 'Invalid Credentials');
+        this.errorMessage.set(this.formatAuthError(err, 'Incorrect email or password. Please try again.'));
       },
     });
+  }
+
+  private formatAuthError(err: any, fallbackMessage: string): string {
+    const detail = err?.error?.detail;
+    if (err?.status === 404 || detail === 'Not Found') {
+      return 'No account found with this email. Please check your email or create a new account.';
+    }
+    if (detail === 'Invalid Credentials' || err?.status === 401) {
+      return 'Incorrect email or password. Please try again.';
+    }
+    return detail || fallbackMessage;
   }
 }
