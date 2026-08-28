@@ -27,6 +27,13 @@ export class Auth {
     );
   }
 
+  loginWithGoogle(idToken: string) {
+    return this.http.post<{ access_token: string; token_type: string }>(
+      `${this.apiUrl}/auth/google`,
+      { id_token: idToken }
+    );
+  }
+
   storeToken(token: string) {
     localStorage.setItem('access_token', token);
   }
