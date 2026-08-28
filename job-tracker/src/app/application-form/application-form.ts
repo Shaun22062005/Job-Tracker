@@ -87,6 +87,7 @@ export class ApplicationForm implements OnInit, OnChanges {
       interview_date: this.interviewDate() ? this.interviewDate() : null,
       job_url: this.jobUrl().trim() ? this.jobUrl().trim() : null,
       notes: this.notes().trim() ? this.notes().trim() : null,
+      is_starred: this.initialData ? !!this.initialData.is_starred : false,
     };
 
     this.formSubmit.emit(payload);

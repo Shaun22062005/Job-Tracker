@@ -11,7 +11,7 @@ class ApplicationCreate(BaseModel):
     notes: Optional[str] = None
     job_url: Optional[str] = None
     interview_date: Optional[date] = None
-    is_starred: Optional[bool] = False
+    is_starred: Optional[bool] = None
 
 class ApplicationResponse(BaseModel):
     id: int
