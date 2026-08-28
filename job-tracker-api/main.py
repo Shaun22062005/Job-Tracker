@@ -97,6 +97,27 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 def read_root():
     return {"message": "Job Tracker API is running"}
 
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    db_status = "unknown"
+    try:
+        db.execute(text("SELECT company_slot FROM applications LIMIT 1"))
+        db_status = "company_slot column exists in database"
+    except Exception as e:
+        db_status = f"column check failed: {str(e)}"
+        # Force column creation on Supabase PostgreSQL
+        try:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS company_slot VARCHAR"))
+        except Exception:
+            pass
+
+    return {
+        "status": "online",
+        "database": db_status,
+        "schema_company_slot": "company_slot" in schemas.ApplicationResponse.model_fields
+    }
+
 @app.post("/applications", response_model=schemas.ApplicationResponse)
 def create_application(
     application: schemas.ApplicationCreate, 
