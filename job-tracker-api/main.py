@@ -15,6 +15,11 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+
 # Rate Limiter setup to defend auth endpoints against brute force
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -28,6 +33,11 @@ Base.metadata.create_all(bind=engine)
 with engine.connect() as conn:
     try:
         conn.execute(text("ALTER TABLE applications ADD COLUMN is_starred BOOLEAN DEFAULT 0"))
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute(text("ALTER TABLE applications ADD COLUMN company_slot VARCHAR"))
         conn.commit()
     except Exception:
         pass
@@ -93,6 +103,7 @@ def create_application(
         company_name = application.company_name,
         role = application.role,
         status = application.status,
+        company_slot = application.company_slot,
         applied_date = application.applied_date,
         notes = application.notes,
         job_url = application.job_url,
@@ -132,6 +143,7 @@ def update_application(
     db_application.company_name = application.company_name
     db_application.role = application.role
     db_application.status = application.status
+    db_application.company_slot = application.company_slot
     db_application.applied_date = application.applied_date
     db_application.notes = application.notes
     db_application.job_url = application.job_url
@@ -216,6 +228,39 @@ def user_login(request: Request, user: schemas.UserLogin, db: Session = Depends(
     access_token = create_access_token(data={"user_id": current_user.id})
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/auth/google")
+def google_auth(req: schemas.GoogleLoginRequest, db: Session = Depends(get_db)):
+    token = req.id_token
+    email = None
+
+    try:
+        if GOOGLE_CLIENT_ID:
+            id_info = google_id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+            email = id_info.get("email")
+        else:
+            id_info = google_id_token.verify_oauth2_token(token, google_requests.Request())
+            email = id_info.get("email")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid Google ID token: {str(e)}")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Google authentication failed to provide email")
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        user = models.User(
+            email=email,
+            hashed_password=hash_password(f"google_oauth2_{email}_secret"),
+            created_at=date.today()
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(data={"user_id": user.id})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 
  

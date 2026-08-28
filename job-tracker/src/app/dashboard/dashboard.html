@@ -129,9 +129,14 @@
               </div>
               <span class="role-name">{{ app.role }}</span>
             </div>
-            <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
-              {{ app.status }}
-            </span>
+            <div class="badge-group">
+              <span *ngIf="app.company_slot" class="slot-badge">
+                Slot {{ app.company_slot }}
+              </span>
+              <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
+                {{ app.status }}
+              </span>
+            </div>
           </div>
 
           <div class="app-card-body">

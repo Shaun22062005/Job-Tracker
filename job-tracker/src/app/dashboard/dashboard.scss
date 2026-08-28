@@ -308,7 +308,24 @@
   }
 }
 
-/* Status Badges (Rounded Pills) */
+/* Status Badges (Rounded Pills) & Slot Badges */
+.badge-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.slot-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+
 .badge {
   padding: 0.25rem 0.75rem;
   border-radius: 999px;

@@ -19,6 +19,7 @@ export class ApplicationForm implements OnInit, OnChanges {
   companyName = signal('');
   role = signal('');
   status = signal('Applied');
+  companySlot = signal('');
   appliedDate = signal(new Date().toISOString().split('T')[0]);
   interviewDate = signal('');
   jobUrl = signal('');
@@ -26,6 +27,7 @@ export class ApplicationForm implements OnInit, OnChanges {
   errorMessage = signal('');
 
   statusOptions = ['Applied', 'Interviewing', 'Offered', 'Rejected', 'Bookmarked'];
+  slotOptions = ['None', 'A', 'B2', 'B1', 'C2', 'C1', 'C1(S)'];
 
   ngOnInit() {
     this.populateForm();
@@ -42,6 +44,7 @@ export class ApplicationForm implements OnInit, OnChanges {
       this.companyName.set(this.initialData.company_name || '');
       this.role.set(this.initialData.role || '');
       this.status.set(this.initialData.status || 'Applied');
+      this.companySlot.set(this.initialData.company_slot || '');
       this.appliedDate.set(this.initialData.applied_date || new Date().toISOString().split('T')[0]);
       this.interviewDate.set(this.initialData.interview_date || '');
       this.jobUrl.set(this.initialData.job_url || '');
@@ -50,6 +53,7 @@ export class ApplicationForm implements OnInit, OnChanges {
       this.companyName.set('');
       this.role.set('');
       this.status.set('Applied');
+      this.companySlot.set('');
       this.appliedDate.set(new Date().toISOString().split('T')[0]);
       this.interviewDate.set('');
       this.jobUrl.set('');
@@ -72,10 +76,13 @@ export class ApplicationForm implements OnInit, OnChanges {
       return;
     }
 
+    const slotVal = this.companySlot();
+
     const payload: JobApplicationCreate = {
       company_name: this.companyName().trim(),
       role: this.role().trim(),
       status: this.status(),
+      company_slot: slotVal && slotVal !== 'None' ? slotVal : null,
       applied_date: this.appliedDate(),
       interview_date: this.interviewDate() ? this.interviewDate() : null,
       job_url: this.jobUrl().trim() ? this.jobUrl().trim() : null,

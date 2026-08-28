@@ -21,6 +21,7 @@ class Application(Base):
     role = Column(String)
     status = Column(String)
     applied_date = Column(Date)
+    company_slot = Column(String, nullable=True)
     notes = Column(String, nullable=True)
     job_url = Column(String, nullable=True)
     interview_date = Column(Date, nullable=True)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date
 from typing import Optional
 
@@ -7,6 +7,7 @@ class ApplicationCreate(BaseModel):
     role: str
     status: str
     applied_date: date
+    company_slot: Optional[str] = None
     notes: Optional[str] = None
     job_url: Optional[str] = None
     interview_date: Optional[date] = None
@@ -19,13 +20,13 @@ class ApplicationResponse(BaseModel):
     role: str
     status: str
     applied_date: date
+    company_slot: Optional[str] = None
     notes: Optional[str] = None
     job_url: Optional[str] = None
     interview_date: Optional[date] = None
     is_starred: Optional[bool] = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserCreate(BaseModel):
     email: str
@@ -35,9 +36,11 @@ class UserResponse(BaseModel):
     id: int
     email: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):
     email: str
     plain_password: str
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str

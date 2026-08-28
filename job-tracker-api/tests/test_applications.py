@@ -10,6 +10,7 @@ def test_application_crud_lifecycle(auth_client_user1):
         "company_name": "Google",
         "role": "Senior Frontend Engineer",
         "status": "Applied",
+        "company_slot": "B1",
         "applied_date": "2026-08-01",
         "interview_date": "2026-08-15",
         "job_url": "https://careers.google.com/jobs/123",
@@ -24,6 +25,7 @@ def test_application_crud_lifecycle(auth_client_user1):
     assert created_data["company_name"] == "Google"
     assert created_data["role"] == "Senior Frontend Engineer"
     assert created_data["status"] == "Applied"
+    assert created_data["company_slot"] == "B1"
     assert created_data["is_starred"] is False
 
     # 2. Read Applications (List)
