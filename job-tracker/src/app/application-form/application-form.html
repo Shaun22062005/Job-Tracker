@@ -71,7 +71,13 @@
             (ngModelChange)="companySlot.set($event)"
             name="companySlot"
           >
-            <option *ngFor="let opt of slotOptions" [value]="opt === 'None' ? '' : opt">{{ opt }}</option>
+            <option value="">None</option>
+            <option value="A">A</option>
+            <option value="B2">B2</option>
+            <option value="B1">B1</option>
+            <option value="C2">C2</option>
+            <option value="C1">C1</option>
+            <option value="C1(S)">C1(S)</option>
           </select>
         </div>
 

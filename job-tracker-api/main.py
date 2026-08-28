@@ -29,18 +29,23 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Database table creation
 Base.metadata.create_all(bind=engine)
 
-# Auto-migrate SQLite schema for missing columns on local database
-with engine.connect() as conn:
-    try:
-        conn.execute(text("ALTER TABLE applications ADD COLUMN is_starred BOOLEAN DEFAULT 0"))
-        conn.commit()
-    except Exception:
-        pass
-    try:
-        conn.execute(text("ALTER TABLE applications ADD COLUMN company_slot VARCHAR"))
-        conn.commit()
-    except Exception:
-        pass
+# Auto-migrate schema for missing columns on Supabase PostgreSQL and local database
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS is_starred BOOLEAN DEFAULT FALSE"))
+        conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS company_slot VARCHAR"))
+except Exception:
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE applications ADD COLUMN is_starred BOOLEAN DEFAULT 0"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE applications ADD COLUMN company_slot VARCHAR"))
+            conn.commit()
+        except Exception:
+            pass
 
 # Dynamic CORS origin validation for production frontend deployment
 allowed_origins = [
