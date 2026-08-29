@@ -124,4 +124,14 @@ describe('Dashboard Component', () => {
     expect(mockAuthService.logout).toHaveBeenCalled();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('should return correct slot badge class based on hierarchy', () => {
+    expect(component.getSlotBadgeClass('A')).toBe('slot-a');
+    expect(component.getSlotBadgeClass('B2')).toBe('slot-b2');
+    expect(component.getSlotBadgeClass('B1')).toBe('slot-b1');
+    expect(component.getSlotBadgeClass('C2')).toBe('slot-c2');
+    expect(component.getSlotBadgeClass('C1')).toBe('slot-c1');
+    expect(component.getSlotBadgeClass('C1(S)')).toBe('slot-c1s');
+    expect(component.getSlotBadgeClass(null)).toBe('slot-default');
+  });
 });

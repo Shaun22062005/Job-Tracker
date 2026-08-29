@@ -206,4 +206,23 @@ export class Dashboard implements OnInit {
         return 'badge-default';
     }
   }
+
+  getSlotBadgeClass(slot?: string | null): string {
+    switch (slot) {
+      case 'A':
+        return 'slot-a';
+      case 'B2':
+        return 'slot-b2';
+      case 'B1':
+        return 'slot-b1';
+      case 'C2':
+        return 'slot-c2';
+      case 'C1':
+        return 'slot-c1';
+      case 'C1(S)':
+        return 'slot-c1s';
+      default:
+        return 'slot-default';
+    }
+  }
 }

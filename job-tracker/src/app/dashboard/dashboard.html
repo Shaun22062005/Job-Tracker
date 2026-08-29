@@ -131,7 +131,7 @@
                     {{ app.is_starred ? '★' : '☆' }}
                   </button>
                   <h3 class="company-name">{{ app.company_name }}</h3>
-                  <span *ngIf="app.company_slot" class="slot-tag">
+                  <span *ngIf="app.company_slot" class="slot-tag" [ngClass]="getSlotBadgeClass(app.company_slot)">
                     Slot {{ app.company_slot }}
                   </span>
                 </div>
