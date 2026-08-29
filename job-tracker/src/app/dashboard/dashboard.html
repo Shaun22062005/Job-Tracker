@@ -14,161 +14,167 @@
   </header>
 
   <main class="dashboard-content">
-    <!-- Page Title & Primary CTA Bar -->
-    <div class="dashboard-header-bar">
-      <div>
-        <h2 class="page-title">Applications Dashboard</h2>
-        <p class="page-subtitle">Track and manage your active job applications pipeline</p>
-      </div>
-      <button class="btn btn-primary" (click)="openCreateModal()">
-        + Add Application
-      </button>
-    </div>
-
-    <!-- Quick Statistics Summary Bar -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label">Total</span>
-        <span class="stat-value">{{ stats().total }}</span>
-      </div>
-      <div class="stat-card border-starred">
-        <span class="stat-label">Starred</span>
-        <span class="stat-value text-starred">{{ stats().starred }}</span>
-      </div>
-      <div class="stat-card border-applied">
-        <span class="stat-label">Applied</span>
-        <span class="stat-value text-applied">{{ stats().applied }}</span>
-      </div>
-      <div class="stat-card border-interviewing">
-        <span class="stat-label">Interviewing</span>
-        <span class="stat-value text-interviewing">{{ stats().interviewing }}</span>
-      </div>
-      <div class="stat-card border-offered">
-        <span class="stat-label">Offered</span>
-        <span class="stat-value text-offered">{{ stats().offered }}</span>
-      </div>
-      <div class="stat-card border-rejected">
-        <span class="stat-label">Rejected</span>
-        <span class="stat-value text-rejected">{{ stats().rejected }}</span>
-      </div>
-      <div class="stat-card border-bookmarked">
-        <span class="stat-label">Bookmarked</span>
-        <span class="stat-value text-bookmarked">{{ stats().bookmarked }}</span>
-      </div>
-    </section>
-
-    <!-- Toolbar: Search and Status Filters -->
-    <section class="toolbar">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Search company or role..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
-        />
-        <button *ngIf="searchQuery()" class="clear-btn" (click)="searchQuery.set('')">&times;</button>
-      </div>
-
-      <div class="filter-pills">
-        <button
-          *ngFor="let filter of statusFilters"
-          class="pill-btn"
-          [class.active]="selectedStatusFilter() === filter"
-          (click)="selectedStatusFilter.set(filter)"
-        >
-          {{ filter }}
+    <!-- Pinned Top Header & Controls Area -->
+    <div class="dashboard-fixed-top">
+      <!-- Page Title & Primary CTA Bar -->
+      <div class="dashboard-header-bar">
+        <div>
+          <h2 class="page-title">Applications Dashboard</h2>
+          <p class="page-subtitle">Track and manage your active job applications pipeline</p>
+        </div>
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          + Add Application
         </button>
       </div>
-    </section>
 
-    <!-- Error Alert Banner -->
-    <div *ngIf="errorMessage()" class="alert-banner">
-      <span>{{ errorMessage() }}</span>
-      <button class="close-alert" (click)="errorMessage.set('')">&times;</button>
+      <!-- Quick Statistics Summary Bar -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total</span>
+          <span class="stat-value">{{ stats().total }}</span>
+        </div>
+        <div class="stat-card border-starred">
+          <span class="stat-label">Starred</span>
+          <span class="stat-value text-starred">{{ stats().starred }}</span>
+        </div>
+        <div class="stat-card border-applied">
+          <span class="stat-label">Applied</span>
+          <span class="stat-value text-applied">{{ stats().applied }}</span>
+        </div>
+        <div class="stat-card border-interviewing">
+          <span class="stat-label">Interviewing</span>
+          <span class="stat-value text-interviewing">{{ stats().interviewing }}</span>
+        </div>
+        <div class="stat-card border-offered">
+          <span class="stat-label">Offered</span>
+          <span class="stat-value text-offered">{{ stats().offered }}</span>
+        </div>
+        <div class="stat-card border-rejected">
+          <span class="stat-label">Rejected</span>
+          <span class="stat-value text-rejected">{{ stats().rejected }}</span>
+        </div>
+        <div class="stat-card border-bookmarked">
+          <span class="stat-label">Bookmarked</span>
+          <span class="stat-value text-bookmarked">{{ stats().bookmarked }}</span>
+        </div>
+      </section>
+
+      <!-- Toolbar: Search and Status Filters -->
+      <section class="toolbar">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Search company or role..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+          <button *ngIf="searchQuery()" class="clear-btn" (click)="searchQuery.set('')">&times;</button>
+        </div>
+
+        <div class="filter-pills">
+          <button
+            *ngFor="let filter of statusFilters"
+            class="pill-btn"
+            [class.active]="selectedStatusFilter() === filter"
+            (click)="selectedStatusFilter.set(filter)"
+          >
+            {{ filter }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Error Alert Banner -->
+      <div *ngIf="errorMessage()" class="alert-banner">
+        <span>{{ errorMessage() }}</span>
+        <button class="close-alert" (click)="errorMessage.set('')">&times;</button>
+      </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading()" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading applications...</p>
-    </div>
+    <!-- Scrollable Cards & Content Area -->
+    <div class="dashboard-scrollable-area">
+      <!-- Loading State -->
+      <div *ngIf="loading()" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading applications...</p>
+      </div>
 
-    <!-- Empty Applications State -->
-    <div *ngIf="!loading() && filteredApplications().length === 0" class="empty-state">
-      <h3>No applications found</h3>
-      <p *ngIf="searchQuery() || selectedStatusFilter() !== 'All'">
-        No job applications match your current search query or status filter.
-      </p>
-      <p *ngIf="!searchQuery() && selectedStatusFilter() === 'All'">
-        You haven't added any job applications yet. Click below to add your first one.
-      </p>
-      <button *ngIf="!searchQuery() && selectedStatusFilter() === 'All'" class="btn btn-primary" (click)="openCreateModal()">
-        + Add Application
-      </button>
-    </div>
+      <!-- Empty Applications State -->
+      <div *ngIf="!loading() && filteredApplications().length === 0" class="empty-state">
+        <h3>No applications found</h3>
+        <p *ngIf="searchQuery() || selectedStatusFilter() !== 'All'">
+          No job applications match your current search query or status filter.
+        </p>
+        <p *ngIf="!searchQuery() && selectedStatusFilter() === 'All'">
+          You haven't added any job applications yet. Click below to add your first one.
+        </p>
+        <button *ngIf="!searchQuery() && selectedStatusFilter() === 'All'" class="btn btn-primary" (click)="openCreateModal()">
+          + Add Application
+        </button>
+      </div>
 
-    <!-- Applications Card Grid -->
-    <section *ngIf="!loading() && filteredApplications().length > 0" class="applications-grid">
-      <app-glowing-card
-        *ngFor="let app of filteredApplications()"
-        [isStarred]="app.is_starred || false"
-      >
-        <div class="app-card">
-          <div class="app-card-header">
-            <div class="app-title-group">
-              <div class="company-row">
-                <button
-                  class="star-btn"
-                  [class.starred]="app.is_starred"
-                  (click)="toggleStar(app, $event)"
-                  [title]="app.is_starred ? 'Unstar application' : 'Star application'"
-                >
-                  {{ app.is_starred ? '★' : '☆' }}
-                </button>
-                <h3 class="company-name">{{ app.company_name }}</h3>
-                <span *ngIf="app.company_slot" class="slot-tag">
-                  Slot {{ app.company_slot }}
+      <!-- Applications Card Grid -->
+      <section *ngIf="!loading() && filteredApplications().length > 0" class="applications-grid">
+        <app-glowing-card
+          *ngFor="let app of filteredApplications()"
+          [isStarred]="app.is_starred || false"
+        >
+          <div class="app-card">
+            <div class="app-card-header">
+              <div class="app-title-group">
+                <div class="company-row">
+                  <button
+                    class="star-btn"
+                    [class.starred]="app.is_starred"
+                    (click)="toggleStar(app, $event)"
+                    [title]="app.is_starred ? 'Unstar application' : 'Star application'"
+                  >
+                    {{ app.is_starred ? '★' : '☆' }}
+                  </button>
+                  <h3 class="company-name">{{ app.company_name }}</h3>
+                  <span *ngIf="app.company_slot" class="slot-tag">
+                    Slot {{ app.company_slot }}
+                  </span>
+                </div>
+                <span class="role-name">{{ app.role }}</span>
+              </div>
+              <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
+                {{ app.status }}
+              </span>
+            </div>
+
+            <div class="app-card-body">
+              <div class="meta-row">
+                <span class="meta-item">
+                  <span class="meta-label">Applied:</span> {{ app.applied_date }}
+                </span>
+                <span *ngIf="app.interview_date" class="meta-item text-interview-date">
+                  <span class="meta-label">Interview:</span> {{ app.interview_date }}
                 </span>
               </div>
-              <span class="role-name">{{ app.role }}</span>
-            </div>
-            <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
-              {{ app.status }}
-            </span>
-          </div>
 
-          <div class="app-card-body">
-            <div class="meta-row">
-              <span class="meta-item">
-                <span class="meta-label">Applied:</span> {{ app.applied_date }}
-              </span>
-              <span *ngIf="app.interview_date" class="meta-item text-interview-date">
-                <span class="meta-label">Interview:</span> {{ app.interview_date }}
-              </span>
+              <div *ngIf="app.job_url" class="meta-row">
+                <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
+                  View Job Posting &rarr;
+                </a>
+              </div>
+
+              <p *ngIf="app.notes" class="app-notes">
+                {{ app.notes }}
+              </p>
             </div>
 
-            <div *ngIf="app.job_url" class="meta-row">
-              <a [href]="app.job_url" target="_blank" rel="noopener noreferrer" class="job-link">
-                View Job Posting &rarr;
-              </a>
+            <div class="app-card-footer">
+              <button class="btn-action edit-btn" (click)="openEditModal(app)">
+                Edit
+              </button>
+              <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
+                Delete
+              </button>
             </div>
-
-            <p *ngIf="app.notes" class="app-notes">
-              {{ app.notes }}
-            </p>
           </div>
-
-          <div class="app-card-footer">
-            <button class="btn-action edit-btn" (click)="openEditModal(app)">
-              Edit
-            </button>
-            <button class="btn-action delete-btn" (click)="promptDelete(app.id)">
-              Delete
-            </button>
-          </div>
-        </div>
-      </app-glowing-card>
-    </section>
+        </app-glowing-card>
+      </section>
+    </div>
   </main>
 
   <!-- Create/Edit Form Modal Component -->
