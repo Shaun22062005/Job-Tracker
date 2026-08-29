@@ -134,4 +134,25 @@ describe('Dashboard Component', () => {
     expect(component.getSlotBadgeClass('C1(S)')).toBe('slot-c1s');
     expect(component.getSlotBadgeClass(null)).toBe('slot-default');
   });
+
+  it('should pin starred applications to top and sort by slot hierarchy', () => {
+    const testApps: JobApplication[] = [
+      { id: 1, user_id: 1, company_name: 'Alpha', role: 'Dev', status: 'Applied', applied_date: '2026-08-01', is_starred: false, company_slot: 'A' },
+      { id: 2, user_id: 1, company_name: 'Beta', role: 'Dev', status: 'Applied', applied_date: '2026-08-02', is_starred: true, company_slot: 'B2' },
+      { id: 3, user_id: 1, company_name: 'Gamma', role: 'Dev', status: 'Applied', applied_date: '2026-08-03', is_starred: false, company_slot: 'C1(S)' },
+      { id: 4, user_id: 1, company_name: 'Delta', role: 'Dev', status: 'Applied', applied_date: '2026-08-04', is_starred: true, company_slot: 'C1' },
+      { id: 5, user_id: 1, company_name: 'Epsilon', role: 'Dev', status: 'Applied', applied_date: '2026-08-05', is_starred: false, company_slot: 'B1' },
+    ];
+    component.applications.set(testApps);
+    const sorted = component.filteredApplications();
+
+    // Starred cards come first, ordered by slot importance: Delta (C1), then Beta (B2)
+    expect(sorted[0].company_name).toBe('Delta');
+    expect(sorted[1].company_name).toBe('Beta');
+
+    // Unstarred cards follow, ordered by slot importance: Gamma (C1(S)), then Epsilon (B1), then Alpha (A)
+    expect(sorted[2].company_name).toBe('Gamma');
+    expect(sorted[3].company_name).toBe('Epsilon');
+    expect(sorted[4].company_name).toBe('Alpha');
+  });
 });

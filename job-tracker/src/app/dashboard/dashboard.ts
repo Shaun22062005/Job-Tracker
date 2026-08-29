@@ -46,7 +46,7 @@ export class Dashboard implements OnInit {
   filteredApplications = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
     const filter = this.selectedStatusFilter();
-    return this.applications().filter((app) => {
+    const filtered = this.applications().filter((app) => {
       const matchesSearch =
         !query ||
         app.company_name.toLowerCase().includes(query) ||
@@ -61,6 +61,38 @@ export class Dashboard implements OnInit {
       }
 
       return matchesSearch && matchesStatus;
+    });
+
+    const slotWeight: Record<string, number> = {
+      'C1(S)': 6,
+      'C1': 5,
+      'C2': 4,
+      'B1': 3,
+      'B2': 2,
+      'A': 1,
+    };
+
+    return filtered.sort((a, b) => {
+      // 1. Starred priority: Starred cards are pinned to the top
+      const aStarred = a.is_starred ? 1 : 0;
+      const bStarred = b.is_starred ? 1 : 0;
+      if (bStarred !== aStarred) {
+        return bStarred - aStarred;
+      }
+
+      // 2. Slot priority: Higher importance slots come first
+      const aSlot = a.company_slot ? (slotWeight[a.company_slot] || 0) : 0;
+      const bSlot = b.company_slot ? (slotWeight[b.company_slot] || 0) : 0;
+      if (bSlot !== aSlot) {
+        return bSlot - aSlot;
+      }
+
+      // 3. Fallback: Most recent applied date or ID first
+      const dateComparison = (b.applied_date || '').localeCompare(a.applied_date || '');
+      if (dateComparison !== 0) {
+        return dateComparison;
+      }
+      return b.id - a.id;
     });
   });
 
