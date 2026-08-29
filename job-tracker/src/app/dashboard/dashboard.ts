@@ -115,6 +115,11 @@ export class Dashboard implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
+        if (err?.status === 401) {
+          this.authService.logout();
+          this.router.navigate(['/login'], { queryParams: { sessionExpired: 'true' } });
+          return;
+        }
         this.errorMessage.set(err?.error?.detail || 'Failed to load applications');
         this.loading.set(false);
       },

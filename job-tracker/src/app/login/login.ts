@@ -1,7 +1,7 @@
-import { Component, signal, AfterViewInit } from '@angular/core';
+import { Component, signal, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { Auth } from '../auth';
 import { environment } from '../../environments/environment';
 
@@ -13,13 +13,23 @@ declare const google: any;
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements AfterViewInit {
+export class Login implements OnInit, AfterViewInit {
   email = signal('');
   password = signal('');
   errorMessage = signal('');
   isSubmitting = signal(false);
 
-  constructor(private authService: Auth, private router: Router) {}
+  constructor(
+    private authService: Auth,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    if (this.route.snapshot.queryParamMap.get('sessionExpired') === 'true') {
+      this.errorMessage.set('Your session has expired. Please sign in again.');
+    }
+  }
 
   ngAfterViewInit() {
     this.initGoogleAuth();

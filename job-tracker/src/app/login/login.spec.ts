@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core';
 import { Login } from './login';
 import { Auth } from '../auth';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 describe('Login Component', () => {
@@ -19,6 +19,14 @@ describe('Login Component', () => {
       providers: [
         { provide: Auth, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap({}),
+            },
+          },
+        },
       ],
     }).compileComponents();
 
