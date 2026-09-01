@@ -1,17 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Dashboard } from './dashboard';
 import { ApplicationsService } from '../applications';
 import { Auth } from '../auth';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { JobApplication } from '../job-application';
+import { vi } from 'vitest';
 
 describe('Dashboard Component', () => {
   let component: Dashboard;
   let fixture: ComponentFixture<Dashboard>;
-  let mockAppsService: jasmine.SpyObj<ApplicationsService>;
-  let mockAuthService: jasmine.SpyObj<Auth>;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let mockAppsService: any;
+  let mockAuthService: any;
+  let mockRouter: any;
 
   const mockApplications: JobApplication[] = [
     {
@@ -46,17 +47,19 @@ describe('Dashboard Component', () => {
   ];
 
   beforeEach(async () => {
-    mockAppsService = jasmine.createSpyObj('ApplicationsService', [
-      'getApplications',
-      'createApplication',
-      'updateApplication',
-      'toggleStar',
-      'deleteApplication',
-    ]);
-    mockAuthService = jasmine.createSpyObj('Auth', ['logout']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
-
-    mockAppsService.getApplications.and.returnValue(of(mockApplications));
+    mockAppsService = {
+      getApplications: vi.fn().mockReturnValue(of(mockApplications)),
+      createApplication: vi.fn(),
+      updateApplication: vi.fn(),
+      toggleStar: vi.fn(),
+      deleteApplication: vi.fn(),
+    };
+    mockAuthService = {
+      logout: vi.fn(),
+    };
+    mockRouter = {
+      navigate: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [Dashboard],
@@ -76,7 +79,7 @@ describe('Dashboard Component', () => {
     expect(component).toBeTruthy();
     expect(mockAppsService.getApplications).toHaveBeenCalled();
     expect(component.applications().length).toBe(3);
-    expect(component.loading()).toBeFalse();
+    expect(component.loading()).toBe(false);
   });
 
   it('should compute application statistics correctly', () => {
@@ -110,13 +113,13 @@ describe('Dashboard Component', () => {
   it('should call toggleStar and update local state when star is toggled', () => {
     const targetApp = mockApplications[1]; // Meta, currently is_starred: false
     const updatedMetaApp = { ...targetApp, is_starred: true };
-    mockAppsService.toggleStar.and.returnValue(of(updatedMetaApp));
+    mockAppsService.toggleStar.mockReturnValue(of(updatedMetaApp));
 
     component.toggleStar(targetApp, new MouseEvent('click'));
 
     expect(mockAppsService.toggleStar).toHaveBeenCalledWith(2);
     const metaInState = component.applications().find((a) => a.id === 2);
-    expect(metaInState?.is_starred).toBeTrue();
+    expect(metaInState?.is_starred).toBe(true);
   });
 
   it('should log out user and navigate to /login', () => {

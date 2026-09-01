@@ -1,26 +1,40 @@
-import { ComponentFixture, TestBed } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Register } from './register';
 import { Auth } from '../auth';
-import { Router } from '@angular/router';
+import { GoogleAuth } from '../google-auth';
+import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 
 describe('Register Component', () => {
   let component: Register;
   let fixture: ComponentFixture<Register>;
-  let mockAuthService: jasmine.SpyObj<Auth>;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let mockAuthService: any;
+  let mockGoogleAuthService: any;
+  let router: Router;
 
   beforeEach(async () => {
-    mockAuthService = jasmine.createSpyObj('Auth', ['register']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockAuthService = {
+      register: vi.fn(),
+      loginWithGoogle: vi.fn(),
+      storeToken: vi.fn(),
+    };
+    mockGoogleAuthService = {
+      initializeButton: vi.fn(),
+      triggerPrompt: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [Register],
       providers: [
+        provideRouter([]),
         { provide: Auth, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter },
+        { provide: GoogleAuth, useValue: mockGoogleAuthService },
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockImplementation(() => Promise.resolve(true));
 
     fixture = TestBed.createComponent(Register);
     component = fixture.componentInstance;
@@ -41,19 +55,19 @@ describe('Register Component', () => {
   });
 
   it('should call authService.register and navigate to /login on success', () => {
-    mockAuthService.register.and.returnValue(of({ id: 1, email: 'newuser@example.com' }));
+    mockAuthService.register.mockReturnValue(of({ id: 1, email: 'newuser@example.com' }));
 
     component.email.set('newuser@example.com');
     component.password.set('password123');
     component.onSubmit();
 
     expect(mockAuthService.register).toHaveBeenCalledWith('newuser@example.com', 'password123');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
     expect(component.errorMessage()).toBe('');
   });
 
   it('should set error message on duplicate registration failure', () => {
-    mockAuthService.register.and.returnValue(
+    mockAuthService.register.mockReturnValue(
       throwError(() => ({ error: { detail: 'Email already registered' } }))
     );
 
@@ -62,7 +76,7 @@ describe('Register Component', () => {
     component.onSubmit();
 
     expect(mockAuthService.register).toHaveBeenCalledWith('existinguser@example.com', 'password123');
-    expect(component.errorMessage()).toBe('Email already registered');
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toBe('An account with this email already exists. Please sign in instead.');
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 });

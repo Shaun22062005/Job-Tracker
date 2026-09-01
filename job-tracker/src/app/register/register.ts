@@ -3,9 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../auth';
-import { environment } from '../../environments/environment';
-
-declare const google: any;
+import { GoogleAuth } from '../google-auth';
 
 @Component({
   selector: 'app-register',
@@ -19,54 +17,29 @@ export class Register implements AfterViewInit {
   errorMessage = signal('');
   isSubmitting = signal(false);
 
-  constructor(private authService: Auth, private router: Router) {}
+  constructor(
+    private authService: Auth,
+    private googleAuthService: GoogleAuth,
+    private router: Router
+  ) {}
 
   ngAfterViewInit() {
-    this.initGoogleAuth();
-  }
-
-  private initGoogleAuth() {
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      google.accounts.id.initialize({
-        client_id: environment.googleClientId,
-        callback: (response: any) => this.handleGoogleCredentialResponse(response),
-        auto_select: false,
-      });
-
-      const hiddenContainer = document.getElementById('googleHiddenBtnReg');
-      if (hiddenContainer) {
-        google.accounts.id.renderButton(hiddenContainer, {
-          theme: 'outline',
-          size: 'large',
-          text: 'signup_with',
-        });
-      }
-    } else {
-      setTimeout(() => this.initGoogleAuth(), 500);
-    }
+    this.googleAuthService.initializeButton('googleHiddenBtnReg', (credential: string) => {
+      this.handleGoogleCredentialResponse(credential);
+    });
   }
 
   triggerGoogleAuth() {
-    const hiddenContainer = document.getElementById('googleHiddenBtnReg');
-    if (hiddenContainer) {
-      const btn = hiddenContainer.querySelector('div[role="button"]') as HTMLElement;
-      if (btn) {
-        btn.click();
-        return;
-      }
-    }
-    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-      google.accounts.id.prompt();
-    }
+    this.googleAuthService.triggerPrompt('googleHiddenBtnReg');
   }
 
-  handleGoogleCredentialResponse(response: any) {
-    if (!response || !response.credential) return;
+  handleGoogleCredentialResponse(idToken: string) {
+    if (!idToken) return;
 
     this.isSubmitting.set(true);
     this.errorMessage.set('');
 
-    this.authService.loginWithGoogle(response.credential).subscribe({
+    this.authService.loginWithGoogle(idToken).subscribe({
       next: (res) => {
         this.authService.storeToken(res.access_token);
         this.isSubmitting.set(false);

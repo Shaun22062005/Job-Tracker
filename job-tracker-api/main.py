@@ -1,10 +1,11 @@
 import os
+import secrets
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from database import engine, Base, get_db
+from database import engine, Base, SessionLocal, get_db
 from auth_utils import hash_password, verify_password, create_access_token, decode_access_token
 from datetime import date
 from typing import List
@@ -29,11 +30,24 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Database table creation
 Base.metadata.create_all(bind=engine)
 
+def run_auth_provider_backfill(db: Session) -> None:
+    """Migrate legacy unmigrated users: detect old formula Google accounts and neutralize them."""
+    unmigrated = db.query(models.User).all()
+    for u in unmigrated:
+        if verify_password(f"google_oauth2_{u.email}_secret", u.hashed_password):
+            u.auth_provider = "google"
+            u.hashed_password = hash_password(secrets.token_urlsafe(32))
+        elif u.auth_provider is None:
+            u.auth_provider = "local"
+    if unmigrated:
+        db.commit()
+
 # Auto-migrate schema for missing columns on Supabase PostgreSQL and local database
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS is_starred BOOLEAN DEFAULT FALSE"))
         conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS company_slot VARCHAR"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR"))
 except Exception:
     with engine.connect() as conn:
         try:
@@ -46,6 +60,20 @@ except Exception:
             conn.commit()
         except Exception:
             pass
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN auth_provider VARCHAR"))
+            conn.commit()
+        except Exception:
+            pass
+
+# Gated single-run backfill for legacy Google accounts
+try:
+    with SessionLocal() as db_session:
+        has_unmigrated = db_session.execute(text("SELECT 1 FROM users WHERE auth_provider IS NULL LIMIT 1")).first()
+        if has_unmigrated:
+            run_auth_provider_backfill(db_session)
+except Exception:
+    pass
 
 # Dynamic CORS origin validation for production frontend deployment
 allowed_origins = [
@@ -68,15 +96,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Defensive Security Headers Middleware
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    return response
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
@@ -84,8 +103,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    user_id: int = payload.get("user_id")
 
-    user_id = payload.get("user_id")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Token payload is invalid")
+    
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if user is None:
@@ -99,23 +122,16 @@ def read_root():
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    db_status = "unknown"
     try:
-        db.execute(text("SELECT company_slot FROM applications LIMIT 1"))
-        db_status = "company_slot column exists in database"
-    except Exception as e:
-        db_status = f"column check failed: {str(e)}"
-        # Force column creation on Supabase PostgreSQL
-        try:
-            with engine.begin() as conn:
-                conn.execute(text("ALTER TABLE applications ADD COLUMN IF NOT EXISTS company_slot VARCHAR"))
-        except Exception:
-            pass
+        db.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+        raise HTTPException(status_code=503, detail="Database unavailable")
 
     return {
-        "status": "online",
-        "database": db_status,
-        "schema_company_slot": "company_slot" in schemas.ApplicationResponse.model_fields
+        "status": "healthy",
+        "database": db_status
     }
 
 @app.post("/applications", response_model=schemas.ApplicationResponse)
@@ -189,7 +205,7 @@ def toggle_star_application(
     current_user: models.User = Depends(get_current_user)
 ):
     db_application = db.query(models.Application).filter(models.Application.id == application_id).first()
-
+    
     if db_application is None:
         raise HTTPException(status_code=404, detail="Application not found")
 
@@ -197,7 +213,6 @@ def toggle_star_application(
         raise HTTPException(status_code=403, detail="Not authorized to update this application")
 
     db_application.is_starred = not (db_application.is_starred or False)
-
     db.commit()
     db.refresh(db_application)
 
@@ -213,7 +228,7 @@ def delete_application(
     
     if db_application is None:
         raise HTTPException(status_code=404, detail="Application not found")
-    
+
     if db_application.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this application")
 
@@ -222,16 +237,17 @@ def delete_application(
 
     return {"message": "Application deleted successfully"}
 
-@app.post("/auth/register", response_model=schemas.UserResponse)
 @app.post("/auth/register/", response_model=schemas.UserResponse)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if existing_user:
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+
+    if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     new_user = models.User(
         email = user.email,
         hashed_password = hash_password(user.plain_password),
+        auth_provider = "local",
         created_at = date.today()
     )
 
@@ -248,6 +264,9 @@ def user_login(request: Request, user: schemas.UserLogin, db: Session = Depends(
     if current_user is None:
         raise HTTPException(status_code = 401, detail = 'Invalid Credentials')
     
+    if current_user.auth_provider == "google":
+        raise HTTPException(status_code = 400, detail = "This account was registered using Google. Please sign in with Google.")
+
     if not verify_password(user.plain_password, current_user.hashed_password):
         raise HTTPException(status_code = 401, detail = 'Invalid Credentials')
     
@@ -257,16 +276,13 @@ def user_login(request: Request, user: schemas.UserLogin, db: Session = Depends(
 
 @app.post("/auth/google")
 def google_auth(req: schemas.GoogleLoginRequest, db: Session = Depends(get_db)):
-    token = req.id_token
-    email = None
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google OAuth is not configured on this server")
 
+    token = req.id_token
     try:
-        if GOOGLE_CLIENT_ID:
-            id_info = google_id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
-            email = id_info.get("email")
-        else:
-            id_info = google_id_token.verify_oauth2_token(token, google_requests.Request())
-            email = id_info.get("email")
+        id_info = google_id_token.verify_oauth2_token(token, google_requests.Request(), GOOGLE_CLIENT_ID)
+        email = id_info.get("email")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid Google ID token: {str(e)}")
 
@@ -277,7 +293,8 @@ def google_auth(req: schemas.GoogleLoginRequest, db: Session = Depends(get_db)):
     if not user:
         user = models.User(
             email=email,
-            hashed_password=hash_password(f"google_oauth2_{email}_secret"),
+            hashed_password=hash_password(secrets.token_urlsafe(32)),
+            auth_provider="google",
             created_at=date.today()
         )
         db.add(user)
@@ -286,7 +303,3 @@ def google_auth(req: schemas.GoogleLoginRequest, db: Session = Depends(get_db)):
 
     access_token = create_access_token(data={"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
-
-
-
- 

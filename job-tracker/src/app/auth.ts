@@ -49,7 +49,7 @@ export class Auth {
       if (parts.length !== 3) return true;
       const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
       const payload = JSON.parse(atob(base64));
-      if (!payload.exp) return false;
+      if (!payload.exp) return true;
       return Date.now() >= payload.exp * 1000;
     } catch {
       return true;
