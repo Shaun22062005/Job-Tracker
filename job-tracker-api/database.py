@@ -8,9 +8,11 @@ raw_url = os.getenv("DATABASE_URL", "sqlite:///./jobtracker.db")
 # Clean whitespace and quotes
 DATABASE_URL = raw_url.strip().strip('"').strip("'")
 
-# Fix Heroku / Render legacy postgres:// prefix for SQLAlchemy compatibility
+# Fix Heroku / Render legacy postgres:// prefix or standard postgresql:// prefix for psycopg2 compatibility
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 # Remove pgbouncer query params which cause psycopg2 DSN parse errors
 if "?pgbouncer=true" in DATABASE_URL:
