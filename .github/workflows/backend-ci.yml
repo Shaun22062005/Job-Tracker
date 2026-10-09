@@ -64,3 +64,32 @@ jobs:
         run: |
           cd job-tracker
           npm run build
+
+  docker-build-check:
+    name: Build Docker Images Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./job-tracker-api
+          file: ./job-tracker-api/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./job-tracker
+          file: ./job-tracker/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

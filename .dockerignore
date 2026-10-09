@@ -1,0 +1,35 @@
+# Git & OS artifacts
+.git
+.github
+.gitignore
+*.md
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache
+**/.venv
+**/venv
+**/env
+
+# Node & Angular
+**/node_modules
+**/dist
+**/.angular
+
+# Environment & database files
+**/.env
+**/.env.*
+!**/.env.example
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+
+# IDE files
+.vscode
+.idea
+*.suo
+*.user

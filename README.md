@@ -124,6 +124,57 @@ npx ng serve --port 4200
 
 ---
 
+## 🐳 Running with Docker (Recommended)
+
+Run the full stack (Frontend, Backend, and local PostgreSQL database) with a single command:
+
+### 1. Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (v24+) with Docker Compose.
+
+### 2. Configure Environment
+Copy the example environment file:
+```bash
+# Linux/macOS
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+### 3. Start the Stack
+```bash
+docker compose up -d --build
+```
+- **Frontend SPA**: `http://localhost:4200` (Served via unprivileged Nginx on port 8080)
+- **Backend API**: `http://localhost:8000` (API Docs at `http://localhost:8000/docs`)
+- **Local PostgreSQL**: `127.0.0.1:5433` (Database `jobtracker`, User `postgres`)
+
+### 4. Run Test Suites in Docker
+```bash
+# Run backend pytest suite (runs on in-memory SQLite):
+docker compose run --rm backend pytest -v
+
+# Run frontend Vitest suite (containerized test stage):
+docker build --target test ./job-tracker
+```
+
+### 5. Stop the Stack
+```bash
+# Stop containers (preserves database data volume):
+docker compose down
+
+# Stop containers and remove database data volume:
+docker compose down -v
+```
+
+### 6. Troubleshooting Docker
+- **Container health**: Inspect service status with `docker compose ps`.
+- **Backend logs**: Check logs with `docker compose logs -f backend`.
+- **Database connection check**: Connect locally to `127.0.0.1:5433` using `psql` or DBeaver with credentials from `.env`.
+- **Clean rebuild**: Rebuild from scratch with `docker compose build --no-cache`.
+
+---
+
 ## 💡 Use & Advantages
 
 1. **Streamlined Job Search Management**:

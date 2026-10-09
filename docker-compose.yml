@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jobtracker-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-jobtracker}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-jobtracker}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - jobtracker-network
+
+  backend:
+    build:
+      context: ./job-tracker-api
+      dockerfile: Dockerfile
+    container_name: jobtracker-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://postgres:postgres@postgres:5432/jobtracker}
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+    ports:
+      - "8000:8000"
+    networks:
+      - jobtracker-network
+
+  frontend:
+    build:
+      context: ./job-tracker
+      dockerfile: Dockerfile
+    container_name: jobtracker-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:8080"
+    networks:
+      - jobtracker-network
+
+volumes:
+  postgres_data:
+    name: jobtracker-postgres-data
+
+networks:
+  jobtracker-network:
+    name: jobtracker-network
+    driver: bridge
