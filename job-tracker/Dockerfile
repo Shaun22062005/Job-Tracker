@@ -1,5 +1,5 @@
-# Stage 1: Dependencies cache layer
-FROM node:20.18.0-alpine AS deps
+# Stage 1: Dependencies cache layer (using debian-slim for glibc compatibility with esbuild)
+FROM node:20.18.0-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
