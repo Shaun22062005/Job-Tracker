@@ -278,6 +278,20 @@
   justify-content: space-between;
   gap: 1.15rem;
   min-height: 220px;
+
+  &.is-rejected {
+    .company-name {
+      color: #3f3f46;
+    }
+
+    .role-name {
+      color: #71717a;
+    }
+
+    .app-card-body {
+      opacity: 0.88;
+    }
+  }
 }
 
 .app-card-header {
@@ -344,12 +358,12 @@
         border: 1px solid #bbf7d0;
       }
 
-      /* Tier C1(S): Super Elite tier (Pinnacle dream tier) */
+      /* Tier C1(S): Super Elite tier (Pinnacle dream tier - Gold/Amber) */
       &.slot-c1s {
-        color: #be123c;
-        background-color: #fff1f2;
-        border: 1px solid #fecdd3;
-        box-shadow: 0 1px 3px rgba(190, 18, 60, 0.15);
+        color: #b45309;
+        background-color: #fef3c7;
+        border: 1px solid #fcd34d;
+        box-shadow: 0 1px 3px rgba(180, 83, 9, 0.15);
       }
 
       /* Default / Fallback */
@@ -433,6 +447,16 @@
   &.badge-rejected {
     background-color: #fee2e2;
     color: #991b1b;
+    border: 1px solid #fca5a5;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    .badge-icon {
+      font-size: 0.65rem;
+      font-weight: 800;
+      line-height: 1;
+    }
   }
   &.badge-bookmarked {
     background-color: #f3e8ff;

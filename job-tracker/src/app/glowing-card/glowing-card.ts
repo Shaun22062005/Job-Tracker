@@ -9,4 +9,5 @@ import { CommonModule } from '@angular/common';
 })
 export class GlowingCard {
   @Input() isStarred = false;
+  @Input() isRejected = false;
 }
